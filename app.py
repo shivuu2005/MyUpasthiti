@@ -23,11 +23,12 @@ mysql = MySQL(app)
 
 
 # College coordinates (latitude, longitude)
-COLLEGE_LAT = 23.2157050274791
-COLLEGE_LON = 77.39333365523747
+COLLEGE_LAT = 23.18148035973399
+COLLEGE_LON = 77.30164576585882
+
  
 
-MAX_DISTANCE_KM = 10
+MAX_DISTANCE_KM = 0.5
 
 # Calculate distance
 def is_within_boundary(user_lat, user_long):
