@@ -23,9 +23,8 @@ mysql = MySQL(app)
 
 
 # College coordinates (latitude, longitude)
-COLLEGE_LAT = 23.2599333
-COLLEGE_LON =  77.412615
-
+COLLEGE_LAT = 23.2402017
+COLLEGE_LON =  77.5390127
 
 
 MAX_DISTANCE_KM = 0.5
