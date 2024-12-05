@@ -1,0 +1,97 @@
+
+
+/* Logo styling */
+.navbar-brand img {
+  margin-left: 0px; /* Adjust the value for desired left shift */
+  margin-top: 10px; /* Top margin for better positioning */
+  height: 100px; /* Set a consistent height */
+  width: auto; /* Maintain aspect ratio */
+  transition: transform 0.3s ease; /* Smooth zoom effect */
+}
+
+/* General Navbar Styling */
+* {
+  font-family: 'Helvetica', sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar {
+  background-color: #080A13; /* Dark background */
+  border-bottom: none;
+  padding: 20px 30px;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  height:100px;
+}
+
+/* Navbar links */
+.navbar-nav .nav-item {
+  margin: 0 15px; /* Adjust spacing between items */
+}
+
+.navbar-nav .nav-link {
+  color: #ffffff; /* White text */
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 8px 15px;
+  transition: color 0.3s ease, padding 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover {
+  color: #DB554A;
+  padding: 8px 20px;
+  text-decoration: none;
+}
+
+/* Navbar responsiveness for mobile */
+/* Navbar responsiveness for mobile */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 2px 2px;
+    background-color: #ffffff; /* White background when collapsed */
+  }
+
+  .navbar-nav {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .navbar-nav .nav-item {
+    margin: 10px 0;
+  }
+
+  .navbar-nav .nav-link {
+    font-size: 1rem;
+    padding: 10px 18px;
+    color: #000000; /* Black buttons when collapsed */
+    font-weight: 500;
+    transition: color 0.3s ease, background-color 0.3s ease; /* Transition effect */
+  }
+
+  .navbar-nav .nav-link:hover {
+    color: #ffffff; /* White text on hover */
+    background-color: #5f7a1798; /* Dark background on hover */
+  }
+
+  .navbar-toggler {
+    background-color: #fffdfd; /* Black hamburger icon */
+    border: none; /* Optional: remove the default border */
+  }
+
+  /* Styling the collapsed navbar links */
+  .navbar-collapse {
+    background-color: #ffffff; /* White background for the navbar when collapsed */
+  }
+
+  .navbar-nav .nav-item .nav-link {
+    border-bottom: 1px solid #ddd; /* Add separator lines between nav items */
+  }
+
+  .carouselExample {
+    margin-top: 70px;
+  }
+}
+

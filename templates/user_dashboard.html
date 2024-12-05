@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student dashboard</title>
+    
+    <!-- Bootstrap CSS CDN -->
+    
+    <script src="/static/script.js" defer></script>
+
+    <!-- Custom CSS for additional styling -->
+    <style>
+        body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding-top: 60px;
+}
+
+/* Centered Container Styling */
+.container {
+    max-width: 550px;
+    background-color: #ffffff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    margin: auto;
+    border: 1px solid #e0e0e0;
+}
+
+/* Header Styling */
+h1 {
+    color: #333;
+    font-size: 2.8rem;
+    margin-bottom: 25px;
+    font-weight: 600;
+}
+
+/* Paragraph Styling */
+p {
+    color: #555;
+    font-size: 1.2rem;
+    margin-bottom: 25px;
+}
+
+/* Button Styles */
+.btn {
+    width: 50%;
+    padding: 12px;
+    font-size: 1rem;
+    border-radius: 8px;
+    font-weight: 500;
+    display: block;
+    margin: 0 auto 15px; /* Centers the button and adds margin-bottom */
+    transition: background-color 0.3s ease;
+}
+
+
+.btn-primary {
+    background-color: #007bff;
+    border: none;
+    margin-top:10px;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+
+
+.btn-link {
+    text-align: center;
+    display: block;
+    font-size: 1.1rem;
+    color: #007bff;
+    text-decoration: none;
+    margin-top: 20px;
+}
+
+.btn-link:hover {
+    text-decoration: underline;
+}
+
+/* Flash Messages Styling */
+.flash-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1050;
+    opacity: 1;
+    transition: opacity 0.5s ease-out;
+    min-width: 250px;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(5px);
+}
+
+.flash-message.hide {
+    opacity: 0;
+}
+
+/* Success, Error, Info Flash Messages */
+.flash-message-success {
+    background-color: rgba(40, 167, 69, 0.8);
+    color: white;
+}
+
+.flash-message-danger {
+    background-color: rgba(220, 53, 69, 0.8);
+    color: white;
+}
+
+.flash-message-info {
+    background-color: rgba(23, 162, 184, 0.8);
+    color: white;
+}
+
+.flash-message-warning {
+    background-color: rgba(255, 193, 7, 0.8);
+    color: black;
+}
+.fade-out {
+        opacity: 1;
+        transition: opacity 1s ease-out; /* 1 second transition */
+    }
+
+    .fade-out.hidden {
+        opacity: 0;
+    }
+/* Responsive Design for Small Screens */
+@media (max-width: 576px) {
+    .container {
+        padding: 20px;
+        max-width: 90%;
+    }
+
+    h1 {
+        font-size: 2.2rem;
+    }
+
+    .btn {
+        font-size: 1.1rem;
+    }
+
+    .btn-link {
+        font-size: 1rem;
+    }
+}
+
+/* Table Styling for Attendance Records */
+table {
+    width: 100%;
+    margin-top: 30px;
+    border-collapse: collapse;
+}
+
+table th,
+table td {
+    padding: 12px;
+    text-align: center;
+    border: 1px solid #e0e0e0;
+}
+
+table th {
+    background-color: #007bff;
+    color: white;
+    font-weight: 600;
+}
+
+table tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+/* Input Styling */
+input[type="date"] {
+    font-size: 1rem;
+    padding: 10px;
+    border-radius: 8px;
+    width: 100%;
+    border: 1px solid #ddd;
+    margin-top: 10px;
+}
+
+input[type="date"]:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+/* Flash Message Removal after 3 seconds */
+.hide {
+    opacity: 0;
+    visibility: hidden;
+}
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome, {{ username }}</h1>
+        <p>Current Date: {{ current_date }}</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div id="flash-message-container" class="mb-3">
+            {% for category, message in messages %}
+                <!-- Bootstrap Alerts for Flash Messages -->
+                <div class="alert fade show flash-message 
+                    {% if category == 'danger' %}flash-message-danger
+                    {% elif category == 'success' %}flash-message-success
+                    {% elif category == 'info' %}flash-message-info
+                    {% else %}flash-message-warning{% endif %}" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+
+        <!-- Attendance Form -->
+        <form action="{{ url_for('user_dashboard') }}" id="attendance-form" method="POST" class="mb-4">
+            <input type="hidden" name="latitude" id="latitude">
+            <input type="hidden" name="longitude" id="longitude">
+
+            <!-- Button to Mark Attendance -->
+            <button type="submit" name="action" value="mark" class="btn btn-primary" id="mark-btn">Mark Attendance</button>
+
+            <!-- Button to Unmark Attendance -->
+            <button type="submit" name="action" value="unmark" class="btn btn-primary" id="unmark-btn">Unmark Attendance</button>
+        </form>
+
+        <form action="{{ url_for('user_view_attendance') }}" method="POST">
+            <label for="attendance_date">Select Date:</label>
+            <input type="date" name="attendance_date" id="attendance_date" class="form-control" value="{{ selected_date }}">
+            <button type="submit" name="action" value="view_date" class="btn btn-primary">View Attendance for Selected Date</button>
+            <button type="submit" name="action" value="view_last_10_days" class="btn btn-primary ">View Last 10 Days Attendance</button>
+        </form>
+
+        <!-- Stats Display -->
+        <div class="mt-4">
+            <h4>Total Attendance: {{ total_attendance }}</h4>
+            <h4>Total Present: {{ total_present }}</h4>
+        </div>
+
+        <!-- Display attendance records -->
+        {% if attendance_records %}
+            <table class="table mt-3">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Time</th>
+                       
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in attendance_records %}
+                        <tr>
+                            <td>{{ record.date }}</td>
+                            <td>{{ record.status }}</td>
+                            <td>{{ record.time }}</td>
+                           
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+
+        <a href="/logout" class="btn btn-link">Logout</a>
+    </div>
+
+    <script>
+        window.onload = function() {
+          var flashMessageContainer = document.getElementById("flash-message-container");
+          if (flashMessageContainer) {
+            // Add the fade-out class for smooth fading
+            flashMessageContainer.classList.add("fade-out");
+      
+            // Set a timeout to trigger the fade-out effect after 3 seconds
+            setTimeout(function() {
+              flashMessageContainer.classList.add("hidden");
+            }, 2000);  // 2000ms = 2 seconds
+          }
+        };
+      </script>
+      
+      
+   
+   
+</body>
+</html>

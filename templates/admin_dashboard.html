@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Panel</title>
+    <link rel="stylesheet" href="/static/admin_dashboard.css">
+    <script src="/static/script.js" defer></script>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Admin Panel</h1>
+        </header>
+
+        <!-- Navigation buttons for selecting actions -->
+        <nav class="header-buttons">
+            <button id="view-attendance-btn">
+                <a href="/view_attendance_page" class="nav-link">View Attendance</a>
+            </button>
+            <button id="user-registration-btn">
+                <a href="/generate_report_page" class="nav-link">Generate report</a>
+            </button>
+            <button id="user-registration-btn">
+                <a href="/view_users" class="nav-link">view users</a>
+            </button>
+            <button id="user-registration-btn">
+                <a href="/register" class="nav-link">User Registration</a>
+            </button>
+            <form action="{{ url_for('admin_logout') }}" method="GET">
+                <button type="submit">Logout</button>
+            </form>
+        </nav>
+
+        
+        
+    </div>
+
+   
+</body>
+
+</html>
