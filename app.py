@@ -5,15 +5,18 @@ import csv
 import bcrypt
 import math
 import os
+from os import getenv
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
 
-# MySQL Configuration
-app.config["MYSQL_HOST"] = "mysql.railway.internal"
-app.config["MYSQL_USER"] = "root"
-app.config["MYSQL_PASSWORD"] = "nIznuRZSvMdWJTwtTnlbELuuyiMhHnBH"
-app.config["MYSQL_DB"] = "railway"
+
+
+app.config["MYSQL_HOST"] = getenv("MYSQL_HOST")
+app.config["MYSQL_USER"] = getenv("MYSQL_USER")
+app.config["MYSQL_PASSWORD"] = getenv("MYSQL_PASSWORD")
+app.config["MYSQL_DB"] = getenv("MYSQL_DB")
+
 mysql = MySQL(app)
 
 
