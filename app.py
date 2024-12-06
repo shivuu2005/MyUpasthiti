@@ -3,47 +3,58 @@ from flask_mysqldb import MySQL
 from datetime import datetime, date, timedelta
 import csv
 import bcrypt
+import MySQLdb.cursors
 import math
 import os
-from os import getenv
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
 
-
-
+# MySQL Configuration
 app.config["MYSQL_HOST"] = getenv("MYSQL_HOST")
 app.config["MYSQL_USER"] = getenv("MYSQL_USER")
 app.config["MYSQL_PASSWORD"] = getenv("MYSQL_PASSWORD")
 app.config["MYSQL_DB"] = getenv("MYSQL_DB")
-
 mysql = MySQL(app)
 
 
 
-
-# College coordinates (latitude, longitude)
+# College coordinates
 COLLEGE_LAT = 23.2402017
 COLLEGE_LON = 77.5390127
 
+MAX_DISTANCE_KM = 0.5  # Maximum allowed distance in kilometers
 
+def is_within_boundary(user_lat, user_lon):
+    """
+    Determines whether the given latitude and longitude are within a specified distance from the college.
 
-#college celebration 23.1821354  77.3019595
+    Args:
+        user_lat (float): User's latitude.
+        user_lon (float): User's longitude.
 
+    Returns:
+        bool: True if the user is within the boundary, False otherwise.
+        
+    """
+    
+    print(f"user lat {user_lat} and user long : {user_lon}")
+    R = 6371  # Radius of the Earth in kilometers
 
-MAX_DISTANCE_KM = 100
-
-# Calculate distance
-def is_within_boundary(user_lat, user_long):
-    print(f"user lat {user_lat} and user long : {user_long}")
-    R = 6371  # Radius of Earth in km
+    # Convert degrees to radians
     d_lat = math.radians(user_lat - COLLEGE_LAT)
-    d_lon = math.radians(user_long - COLLEGE_LON)
-    a = math.sin(d_lat / 2)**2 + math.cos(math.radians(COLLEGE_LAT)) * math.cos(math.radians(user_lat)) * math.sin(d_lon / 2)**2
+    d_lon = math.radians(user_lon - COLLEGE_LON)
+    lat1 = math.radians(COLLEGE_LAT)
+    lat2 = math.radians(user_lat)
+
+    # Haversine formula
+    a = math.sin(d_lat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(d_lon / 2) ** 2
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    distance = R * c
-    print(f"Calculated distance: {distance} km")
+    distance = R * c  # Distance in kilometers
+
+    print(f"Calculated distance: {distance:.4f} km")
     return distance <= MAX_DISTANCE_KM
+
 
 @app.route("/")
 def index():
@@ -206,6 +217,28 @@ def admin_dashboard():
     cur.close()
 
     return render_template("admin_dashboard.html", students=students)
+
+@app.route("/view_reports")
+def view_reports():
+    if "admin_logged_in" not in session:
+        return redirect(url_for("admin_login"))  # Redirect if not logged in
+
+    # Fetch reports from the 'reports' table
+    try:
+        cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)  # Use DictCursor
+        cur.execute("SELECT * FROM reports")
+        reports = cur.fetchall()  # Fetch data as a list of dictionaries
+        cur.close()
+
+        # Debugging: Print the data in the terminal
+        print("Fetched reports:", reports)
+    except Exception as e:
+        print("Error fetching reports:", e)
+        reports = []
+
+    return render_template("view_reports.html", reports=reports)
+
+
 
 @app.route("/edit_student/<string:enrollment_no>", methods=["GET", "POST"])
 def edit_student(enrollment_no):
@@ -534,6 +567,7 @@ def user_dashboard():
             current_hour = datetime.now().hour
             current_time = datetime.now().strftime("%H:%M:%S")
 
+            # Check if the time is within allowed hours (9 AM - 11 AM)
             if current_hour < 0 or current_hour >= 24:
                 flash("Attendance can only be marked between 12 AM and 11:59 PM.", "danger")
                 return redirect(url_for("user_dashboard"))
@@ -589,12 +623,91 @@ def user_dashboard():
 
     return redirect(url_for("index"))
 
+@app.route("/change_password", methods=["GET", "POST"])
+def change_password():
+    if "user_id" not in session:
+        return redirect(url_for("index"))  # Redirect to login if user is not logged in
+
+    if request.method == "POST":
+        current_password = request.form.get("current_password", "").strip()
+        new_password = request.form.get("new_password", "").strip()
+        confirm_password = request.form.get("confirm_password", "").strip()
+
+        # Validate input
+        if not current_password or not new_password or not confirm_password:
+            flash("All fields are required.", "danger")
+            return redirect(url_for("change_password"))
+
+        if new_password != confirm_password:
+            flash("New password and confirm password do not match.", "danger")
+            return redirect(url_for("change_password"))
+
+        try:
+            cur = mysql.connection.cursor()
+
+            # Verify current password
+            cur.execute("SELECT password FROM users WHERE id = %s", (session["user_id"],))
+            user = cur.fetchone()
+            if not user or not bcrypt.checkpw(current_password.encode("utf-8"), user[0].encode("utf-8")):
+                flash("Current password is incorrect.", "danger")
+                return redirect(url_for("change_password"))
+
+            # Update with the new password
+            hashed_new_password = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt())
+            cur.execute("UPDATE users SET password = %s WHERE id = %s", (hashed_new_password, session["user_id"]))
+            mysql.connection.commit()
+            cur.close()
+
+            flash("Password changed successfully.", "success")
+            return redirect(url_for("user_dashboard"))
+
+        except Exception as e:
+            flash(f"Error while changing password: {str(e)}", "danger")
+            return redirect(url_for("change_password"))
+
+    return render_template("change_password.html")
+
+
+@app.route("/report_issue", methods=["GET", "POST"])
+def report_issue():
+    if "user_id" not in session:
+        return redirect(url_for("index"))  # Redirect to login if the user isn't authenticated
+    
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        enrollment_number = request.form.get("enrollment_number", "").strip()
+        problem_type = request.form.get("problem_type", "").strip()
+        message = request.form.get("message", "").strip()
+
+        # Validate input
+        if not name or not enrollment_number or not problem_type or not message:
+            flash("All fields are required.", "danger")
+            return redirect(url_for("report_issue"))
+
+        try:
+            # Insert data into the reports table
+            cur = mysql.connection.cursor()
+            cur.execute("""
+                INSERT INTO reports (user_id, name, enrollment_number, date, problem_type, message) 
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (session["user_id"], name, enrollment_number, date.today(), problem_type, message))
+            mysql.connection.commit()
+            cur.close()
+
+            flash("Report submitted successfully.", "success")
+            return redirect(url_for("user_dashboard"))
+        except Exception as e:
+            flash(f"Error submitting the report: {str(e)}", "danger")
+
+    return render_template("report_issue.html")
+
 
 
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect(url_for("index"))
+
 
 if __name__ == "__main__":
     app.run(debug=False, host='0.0.0.0', port=5000)
