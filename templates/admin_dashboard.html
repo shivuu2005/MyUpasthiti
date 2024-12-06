@@ -4,41 +4,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teacher Panel</title>
-    <link rel="stylesheet" href="/static/admin_dashboard.css">
-    <script src="/static/script.js" defer></script>
+    <title>Admin Dashboard</title>
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Two+Tone|Material+Icons+Round|Material+Icons+Sharp" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --header-height: 4rem;
+            --sidebar-width: 240px;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .animate-slide-down {
+            animation: slideDown 0.5s ease-out;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .animate-slide-up {
+            animation: slideUp 0.5s ease-out forwards;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {}
+            }
+        };
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const mobileMenuButton = document.querySelector('.mobile-menu-button');
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.overlay');
+            const sidebarLinks = document.querySelectorAll('.sidebar a');
+
+            // Toggle the sidebar and overlay visibility
+            mobileMenuButton.addEventListener('click', () => {
+                sidebar.classList.toggle('translate-x-full');
+                overlay.classList.toggle('hidden');
+                overlay.classList.toggle('opacity-0');
+            });
+
+            // Close the sidebar when clicking on the overlay
+            overlay.addEventListener('click', () => {
+                sidebar.classList.add('translate-x-full');
+                overlay.classList.add('hidden');
+                overlay.classList.add('opacity-0');
+            });
+
+            // Close sidebar when a link is clicked
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    sidebar.classList.add('translate-x-full');
+                    overlay.classList.add('hidden');
+                    overlay.classList.add('opacity-0');
+                });
+            });
+        });
+        
+    </script>
 </head>
 
-<body>
-    <div class="container">
-        <header>
-            <h1>Admin Panel</h1>
-        </header>
+<body class="bg-indigo-50 min-h-screen overflow-x-hidden">
+    <!-- Overlay for mobile sidebar -->
+    <div class="overlay fixed inset-0 bg-indigo-900/50 z-40 hidden opacity-0 transition-opacity duration-300"></div>
 
-        <!-- Navigation buttons for selecting actions -->
-        <nav class="header-buttons">
-            <button id="view-attendance-btn">
-                <a href="/view_attendance_page" class="nav-link">View Attendance</a>
+    <!-- Header -->
+    <header class="fixed w-full bg-white text-indigo-800 z-50 shadow-lg animate-slide-down">
+        <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between h-16">
+            <!-- Logo -->
+            <div class="text-xl font-bold text-blue-900">
+                <img src="/static/images/logo.png" style="height: 70px; width: auto;" alt="Logo">
+            </div>
+            <!-- Mobile Menu Button -->
+            <button aria-label="Open Sidebar" class="mobile-menu-button p-2 lg:hidden">
+                <span class="material-icons-outlined text-2xl">menu</span>
             </button>
-            <button id="user-registration-btn">
-                <a href="/generate_report_page" class="nav-link">Generate report</a>
-            </button>
-            <button id="user-registration-btn">
-                <a href="/view_users" class="nav-link">view users</a>
-            </button>
-            <button id="user-registration-btn">
-                <a href="/register" class="nav-link">User Registration</a>
-            </button>
-            <form action="{{ url_for('admin_logout') }}" method="GET">
-                <button type="submit">Logout</button>
-            </form>
-        </nav>
+            <!-- Header Icons -->
+            <div class="hidden lg:flex items-center space-x-2">
+                <form action="{{ url_for('admin_logout') }}" method="GET" class="flex items-center w-full text-gray-600 hover:text-indigo-800 py-4 transition-all duration-300 hover:translate-x-1">
+                    <span class="material-icons-outlined mr-2">power_settings_new</span>
+                    <button type="submit" class="text-left">Logout</button>
+                </form>
+            </div>
+        </div>
+    </header>
 
-        
-        
+    <!-- Main Content -->
+    <div class="pt-16 max-w-7xl mx-auto flex">
+        <!-- Sidebar -->
+        <aside class="sidebar fixed lg:static w-[240px] bg-indigo-50 h-[calc(100vh-4rem)] lg:h-auto transform translate-x-full lg:translate-x-0 transition-transform duration-300 z-45 overflow-y-auto p-4 right-0">
+            <div class="bg-white rounded-xl shadow-lg mb-6 p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                <a href="/admin_dashboard" class="flex items-center w-full text-gray-600 hover:text-indigo-800 py-4 transition-all duration-300 hover:translate-x-1">
+                    <span class="material-icons-outlined mr-2">dashboard</span>
+                    <span>Home</span>
+                </a>
+                <a href="/view_attendance_page" class="flex items-center w-full text-gray-600 hover:text-indigo-800 py-4 transition-all duration-300 hover:translate-x-1">
+                    <span class="material-icons-outlined mr-2">check_circle</span>
+                    <span>View Attendance</span>
+                </a>
+                <a href="/view_users" class="flex items-center w-full text-gray-600 hover:text-indigo-800 py-4 transition-all duration-300 hover:translate-x-1">
+                    <span class="material-icons-outlined mr-2">visibility</span>
+                    <span>View User</span>
+                </a>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                <a href="/register" class="flex items-center w-full text-gray-600 hover:text-indigo-800 py-4 transition-all duration-300 hover:translate-x-1">
+                    <span class="material-icons-outlined mr-2">person_add</span>
+                    <span>User Registration</span>
+                </a>
+                <a href="/generate_report_page" class="flex items-center w-full text-gray-600 hover:text-indigo-800 py-4 transition-all duration-300 hover:translate-x-1">
+                    <span class="material-icons-outlined mr-2">description</span>
+                    <span>Generate Report</span>
+                </a>
+                <form action="{{ url_for('view_reports') }}" method="GET" class="flex items-center w-full text-gray-600 hover:text-indigo-800 py-4 transition-all duration-300 hover:translate-x-1">
+                    <span class="material-icons-outlined mr-2">power_settings_new</span>
+                    <button type="submit" class="text-left">View Complaints</button>
+                </form>
+            </div>
+        </aside>
+
+        <!-- Main Area -->
+        <main class="flex-1 p-4">
+            <!-- Greeting Section -->
+            <div class="flex flex-col lg:flex-row gap-4 mb-6">
+                <div class="flex-1 bg-indigo-100 border border-indigo-200 rounded-xl p-6 animate-fade-in">
+                    <h2 class="text-4xl md:text-5xl text-blue-900">
+                        Welcome <br><strong>Admin</strong>
+                    </h2>
+                    <span class="inline-block mt-8 px-8 py-2 rounded-full text-xl font-bold text-white bg-indigo-800">
+                        01:51
+                    </span>
+                </div>
+
+                <div class="flex-1 bg-blue-100 border border-blue-200 rounded-xl p-6 animate-fade-in">
+                    <h2 class="text-4xl md:text-5xl text-blue-900">
+                        Inbox <br><strong>23</strong>
+                    </h2>
+                    <a href="#" class="inline-block mt-8 px-8 py-2 rounded-full text-xl font-bold text-white bg-blue-800 hover:bg-blue-900 transition-transform duration-300 hover:scale-105">
+                        See messages
+                    </a>
+                </div>
+            </div>
+
+            <!-- Stats Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="bg-white rounded-xl shadow-lg p-6 h-64 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl animate-slide-up">
+                    <h3 class="text-xl font-bold text-indigo-800 mb-2">Feature #1</h3>
+                    <p class="text-gray-600">Description here...</p>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6 h-64 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl animate-slide-up">
+                    <h3 class="text-xl font-bold text-indigo-800 mb-2">Feature #2</h3>
+                    <p class="text-gray-600">Description here...</p>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6 h-64 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl animate-slide-up">
+                    <h3 class="text-xl font-bold text-indigo-800 mb-2">Feature #3</h3>
+                    <p class="text-gray-600">Description here...</p>
+                </div>
+            </div>
+        </main>
     </div>
-
-   
 </body>
 
 </html>
