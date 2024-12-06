@@ -534,9 +534,8 @@ def user_dashboard():
             current_hour = datetime.now().hour
             current_time = datetime.now().strftime("%H:%M:%S")
 
-            # Check if the time is within allowed hours (9 AM - 11 AM)
-            if current_hour < 9 or current_hour > 24:
-                flash("Attendance can only be marked between 9 AM and 11 AM.", "danger")
+            if current_hour < 0 or current_hour >= 24:
+                flash("Attendance can only be marked between 12 AM and 11:59 PM.", "danger")
                 return redirect(url_for("user_dashboard"))
 
             # Connect to the database
