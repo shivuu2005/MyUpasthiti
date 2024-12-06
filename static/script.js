@@ -1,22 +1,36 @@
 document.addEventListener("DOMContentLoaded", () => {
     const latitudeInput = document.getElementById("latitude");
     const longitudeInput = document.getElementById("longitude");
-    const countdownElement = document.getElementById("countdown");
-    let countdown = 5;
+    const markButton = document.getElementById("mark-btn");
+    const unmarkButton = document.getElementById("unmark-btn");
+    const countdownDisplay = document.getElementById("countdown"); // Display countdown
 
-    // Countdown function
-    function startCountdown(callback) {
-        countdownElement.style.display = "block";
-        const interval = setInterval(() => {
-            countdownElement.textContent = `Requesting location in ${countdown}...`;
-            countdown -= 1;
-            if (countdown < 0) {
-                clearInterval(interval);
-                countdownElement.style.display = "none";
-                callback();
-            }
-        }, 1000);
-    }
+    let countdown = 5; // Countdown seconds
+    let locationFetched = false; // Flag to check if location is fetched
+
+    // Apply initial styles for countdown
+    countdownDisplay.style.color = "red";
+    countdownDisplay.style.fontWeight = "bold";
+
+    // Disable buttons initially
+    markButton.disabled = true;
+    unmarkButton.disabled = true;
+
+    // Start countdown
+    const countdownInterval = setInterval(() => {
+        if (locationFetched) {
+            clearInterval(countdownInterval); // Stop countdown if location is fetched
+            return;
+        }
+
+        countdownDisplay.textContent = `Location will be fetched in ${countdown} seconds...`;
+        countdown--;
+
+        if (countdown < 0) {
+            clearInterval(countdownInterval);
+            fetchLocation();
+        }
+    }, 1000);
 
     // Function to fetch the location
     function fetchLocation() {
@@ -25,33 +39,37 @@ document.addEventListener("DOMContentLoaded", () => {
                 (position) => {
                     latitudeInput.value = position.coords.latitude;
                     longitudeInput.value = position.coords.longitude;
-                    alert("Location fetched successfully!");
+
+                    // Mark location as fetched
+                    locationFetched = true;
+
+                    // Clear the countdown text
+                    countdownDisplay.textContent = "";
+
+                    // Enable buttons after fetching location
+                    markButton.disabled = false;
+                    unmarkButton.disabled = false;
                 },
                 (error) => {
-                    switch (error.code) {
-                        case error.PERMISSION_DENIED:
-                            alert("Location access denied. Please enable GPS!");
-                            break;
-                        case error.POSITION_UNAVAILABLE:
-                            alert("Location unavailable. Please try again later.");
-                            break;
-                        case error.TIMEOUT:
-                            alert("Location request timed out. Please retry.");
-                            break;
-                        default:
-                            alert("An unknown error occurred.");
+                    // Handle location errors
+                    if (error.code === error.PERMISSION_DENIED) {
+                        alert("Location permission is required. Please enable GPS.");
+                    } else {
+                        alert("Error retrieving location. Please try again!");
                     }
-                },
-                { timeout: 10000 } // Set a timeout of 10 seconds
+
+                    // Optionally, retry fetching location if necessary
+                    countdownDisplay.textContent = "Error retrieving location. Retrying...";
+                    fetchLocation(); // Retry fetching location
+                }
             );
         } else {
             alert("Geolocation is not supported by this browser.");
+            countdownDisplay.textContent = "Geolocation not supported.";
         }
     }
-
-    // Start the countdown and fetch the location
-    startCountdown(fetchLocation);
 });
+
 
 window.addEventListener("scroll", function() {
     const navbar = document.querySelector('.navbar');
