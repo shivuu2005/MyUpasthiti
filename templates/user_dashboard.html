@@ -8,6 +8,7 @@
     <!-- Bootstrap CSS CDN -->
     
     <script src="/static/script.js" defer></script>
+    
 
     <!-- Custom CSS for additional styling -->
     <style>
@@ -221,15 +222,18 @@ input[type="date"]:focus {
 
         <!-- Attendance Form -->
         <form action="{{ url_for('user_dashboard') }}" id="attendance-form" method="POST" class="mb-4">
-              <div id="countdown" style="display: none; font-size: 18px; color: red; margin-top: 10px;"></div>
+          
+            <p id="countdown" style="color: red; font-weight: bold;"></p>
             <input type="hidden" name="latitude" id="latitude">
-            <input type="hidden" name="longitude" id="longitude">
+            <input type="hidden"  name="longitude" id="longitude">
+            
 
             <!-- Button to Mark Attendance -->
             <button type="submit" name="action" value="mark" class="btn btn-primary" id="mark-btn">Mark Attendance</button>
 
             <!-- Button to Unmark Attendance -->
             <button type="submit" name="action" value="unmark" class="btn btn-primary" id="unmark-btn">Unmark Attendance</button>
+            
         </form>
 
         <form action="{{ url_for('user_view_attendance') }}" method="POST">
@@ -237,6 +241,12 @@ input[type="date"]:focus {
             <input type="date" name="attendance_date" id="attendance_date" class="form-control" value="{{ selected_date }}">
             <button type="submit" name="action" value="view_date" class="btn btn-primary">View Attendance for Selected Date</button>
             <button type="submit" name="action" value="view_last_10_days" class="btn btn-primary ">View Last 10 Days Attendance</button>
+        </form>
+        <form action="{{ url_for('change_password') }}" method="GET">
+            <button type="submit" class="btn btn-primary">Change Password</button>
+        </form>
+        <form action="{{ url_for('report_issue') }}" method="get">
+            <button type="submit" class="btn btn-primary">Report an Issue</button>
         </form>
 
         <!-- Stats Display -->
