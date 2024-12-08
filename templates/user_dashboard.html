@@ -131,7 +131,8 @@ document.addEventListener("DOMContentLoaded", () => {
         <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-      <div id="flash-container" class="fixed top-4 right-4 space-y-2">
+     
+          <div id="flash-container" class="fixed top-16 right-4 space-y-2 z-50">
         {% for category, message in messages %}
           <div class="flash-message p-4 rounded-lg shadow-lg text-white 
                       {% if category == 'success' %} bg-green-500 
