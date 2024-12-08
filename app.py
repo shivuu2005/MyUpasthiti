@@ -34,6 +34,7 @@ mysql = MySQL(app)
 COLLEGE_LAT = 23.2599333
 COLLEGE_LON = 77.412615    
 
+
 MAX_DISTANCE_METERS = 150  # Radius of geofence in meters
 
 def is_within_boundary(user_lat, user_lon):
@@ -830,4 +831,4 @@ def attendance_data():
 
 
 if __name__ == "__main__":
-    app.run(debug=false, host='0.0.0.0', port=5000)
+    app.run(debug=true, host='0.0.0.0', port=5000)
