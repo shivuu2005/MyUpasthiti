@@ -12,7 +12,7 @@ app = Flask(__name__)
 app.secret_key = "your_secret_key"
 
 # MySQL Configuration
-'''
+
 app.config["MYSQL_HOST"] = getenv("MYSQL_HOST")
 app.config["MYSQL_USER"] = getenv("MYSQL_USER")
 app.config["MYSQL_PASSWORD"] = getenv("MYSQL_PASSWORD")
@@ -27,7 +27,7 @@ app.config["MYSQL_USER"] = "root"
 app.config["MYSQL_PASSWORD"] = ""
 app.config["MYSQL_DB"] = "attendance_system"
 mysql = MySQL(app)
-
+'''
 
 
 # College coordinates
@@ -830,4 +830,4 @@ def attendance_data():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=false, host='0.0.0.0', port=5000)
