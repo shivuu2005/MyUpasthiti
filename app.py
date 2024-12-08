@@ -31,8 +31,8 @@ mysql = MySQL(app)
 
 
 # College coordinates
-COLLEGE_LAT = 23.2166749
-COLLEGE_LON = 77.3952933  
+COLLEGE_LAT = 23.1821179
+COLLEGE_LON = 77.3018561  
 
 
 MAX_DISTANCE_METERS = 150  # Radius of geofence in meters
@@ -394,9 +394,9 @@ def auto_mark_absent():
         # Mark them as "Absent" in attendance
         for user_id in absent_users:
             cur.execute("""
-                INSERT INTO attendance (user_id, date, status)
-                VALUES (%s, %s, %s)
-            """, (user_id[0], today_date, "Absent"))
+                INSERT INTO attendance (user_id, date, time, status)
+                VALUES (%s, %s, %s, %s)
+            """, (user_id[0], today_date, current_time, "Absent"))
 
         mysql.connection.commit()
         cur.close()
@@ -660,8 +660,8 @@ def user_dashboard():
             current_time = datetime.now().strftime("%H:%M:%S")
 
             # Check if the time is within allowed hours (9 AM - 11 AM)
-            if current_hour < 0 or current_hour >= 24:
-                flash("Attendance can only be marked between 12 AM and 11:59 PM.", "danger")
+            if current_hour < 9 or current_hour >= 11:
+                flash("Attendance can only be marked between 09 AM and 11:00 AM.", "danger")
                 return redirect(url_for("user_dashboard"))
 
             # Connect to the database
