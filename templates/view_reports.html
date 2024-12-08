@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Reports</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-right: 5px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table th, table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        table th {
+            background-color: #f4f4f4;
+        }
+
+        .action-buttons form {
+            display: inline-block;
+            margin: 0 5px;
+        }
+
+        .delete-button {
+            background-color: #f44336;
+        }
+
+        .back-button {
+            
+            text-decoration: none;
+        }
+
+        .back-button button {
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>View Reports</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>User ID</th>
+                <th>Name</th>
+                <th>Enrollment Number</th>
+                <th>Date</th>
+                <th>Problem Type</th>
+                <th>Message</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for report in reports %}
+            <tr>
+                <td>{{ report.id }}</td>
+                <td>{{ report.user_id }}</td>
+                <td>{{ report.name }}</td>
+                <td>{{ report.enrollment_number }}</td>
+                <td>{{ report.date }}</td>
+                <td>{{ report.problem_type }}</td>
+                <td>{{ report.message }}</td>
+                <td>{{ report.status }}</td>
+                <td class="action-buttons">
+                    <form method="POST" style="display:inline;">
+                        <input type="hidden" name="report_id" value="{{ report.id }}">
+                        <button type="submit" name="status" value="solved">Mark as Solved</button>
+                        <button type="submit" name="status" value="unsolved">Mark as Unsolved</button>
+                    </form>
+                    
+                    <form method="POST" style="display:inline;">
+                        <input type="hidden" name="report_id" value="{{ report.id }}">
+                        <button type="submit" name="delete" value="true" class="delete-button">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <br>
+
+    <a href="{{ url_for('admin_dashboard') }}" class="back-button">
+        <button>Back to Dashboard</button>
+    </a>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Attendance</title>
+    <link rel="stylesheet" href="/static/admin_dashboard.css">
+    <!-- Bootstrap CSS -->
+   
+    <script src="/static/script.js" defer></script>
+</head>
+
+<body>
+    <div class="container mt-5">
+        <header class="mb-4">
+            <h1 class="text-center">View Attendance</h1>
+        </header>
+
+        <!-- Attendance View Section -->
+        <section class="form-container">
+            <h2 class="text-center">Select Date</h2>
+            <form id="view-attendance-form" class="text-center">
+                <div class="mb-3">
+                    <label for="attendance_date" class="form-label">Select Date:</label>
+                    <input type="date" id="attendance_date" name="attendance_date" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary">View Attendance</button>
+            </form>
+
+            <div id="attendance-results" class="mt-4" aria-live="polite">
+                <!-- Attendance records will be dynamically displayed here -->
+            </div>
+        </section>
+
+        <footer class="mt-4 text-center">
+            <a href="/admin_dashboard" class="btn btn-link">Back to Dashboard</a>
+        </footer>
+    </div>
+
+    <script>
+        // Handle AJAX submission for viewing attendance
+        document.getElementById("view-attendance-form").addEventListener("submit", async (event) => {
+            event.preventDefault(); // Prevent form's default submission behavior
+
+            const formData = new FormData(event.target); // Get the form data
+            const attendanceResults = document.getElementById("attendance-results"); // Target for displaying results
+
+            attendanceResults.innerHTML = "Loading..."; // Show loading message
+
+            try {
+                // Send the POST request to the server
+                const response = await fetch("/view_attendance", {
+                    method: "POST",
+                    body: formData,
+                });
+
+                if (response.ok) {
+                    const data = await response.json(); // Parse JSON response
+                    // Render results dynamically
+                    attendanceResults.innerHTML = renderAttendanceResults(data);
+                } else {
+                    attendanceResults.innerHTML = "Error fetching attendance records.";
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                attendanceResults.innerHTML = "An error occurred. Please try again later.";
+            }
+        });
+
+        // Function to render attendance results dynamically
+        function renderAttendanceResults(records) {
+            if (!records || records.length === 0) {
+                return "<p>No attendance records found for the selected date.</p>";
+            }
+
+            // Build the table
+            let tableHTML = `
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Enrollment Number</th>
+                            <th>Name</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            // Add rows for each record
+            records.forEach(record => {
+                tableHTML += `
+                    <tr>
+                        <td>${record.enrollment_no}</td>
+                        <td>${record.name}</td>
+                        <td>${record.status}</td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
+
+            return tableHTML;
+        }
+    </script>
+
+  </body>
+
+</html>

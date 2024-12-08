@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyUpasthiti</title>
+
+    <!-- External Libraries -->
+    <!-- Only load Bootstrap CSS once -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.min.css">
+    <!-- Ionicons for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css">
+    
+    <!-- Load jQuery (only once) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Bootstrap JS (bundled with Popper.js) -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='footer.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='aboutus.css') }}">
+
+    <style>
+        /* Custom styling for smooth scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+        h1, h2, h3, h4, h5, h6 {
+    color: #0000ff;
+}
+section {
+    padding: 60px;
+}
+a, a:hover, a:focus, a:active {
+    text-decoration: none;
+    outline: none;
+}
+ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.faq {
+    padding: 120px 0 90px;
+    background: #f7fbff;
+    min-height: 100vh;
+}
+
+.faq .section-title {
+    margin-bottom: 54px;
+}
+
+.faq .section-title h2 {
+    margin-bottom: 22px;
+}
+
+.faq .accordion .card {
+    border: none;
+    margin-bottom: 30px;
+}
+
+.faq .accordion .card:not(:first-of-type) .card-header:first-child {
+    border-radius: 10px;
+}
+
+.faq .accordion .card .card-header {
+    border: none;
+    border-radius: 10px;
+    padding: 0;
+}
+
+.faq .accordion .card .card-header h5 {
+    padding: 0;
+}
+
+.faq .accordion .card .card-header h5 button {
+    color: #1e3056;
+    font-size: 18px;
+    font-weight: 500;
+    text-decoration: none;
+    padding: 0 30px 0 70px;
+    height: 80px;
+    display: block;
+    width: 100%;
+    color: rgba(30, 48, 86, 0.8);
+    text-align: left;
+    background: #fff;
+    -webkit-box-shadow: 0px -50px 140px 0px rgba(69, 81, 100, 0.1);
+    box-shadow: 0px -50px 140px 0px rgba(69, 81, 100, 0.1);
+    border-radius: 10px 10px 0 0;
+    position: relative;
+    border:none;
+}
+
+.faq .accordion .card .card-header h5 button:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.faq .accordion .card .card-header h5 button:after {
+    position: absolute;
+    left: 30px;
+    top: 50%;
+    margin-top: -10px;
+    width: 20px;
+    height: 20px;
+    background-color: transparent;
+    color: #0000ff;
+    text-align: center;
+    border: 1px solid #0000ff;
+    border-radius: 50%;
+    line-height: 100%;
+    content: '\f067';
+    font-size: 10px;
+    line-height: 18px;
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+}
+
+.faq .accordion .card .card-header h5 button.collapsed {
+    background: #fff;
+    border-radius: 10px;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+    border: 1px solid rgba(97, 125, 255, 0.2);
+}
+
+.faq .accordion .card .card-header h5 button[aria-expanded="true"]:after {
+    content: '\f068';
+    color: #fff;
+    background-image: -webkit-linear-gradient(-180deg, #5e7eff 0%, #ff5f74 30%, #a85fff 100%);
+}
+
+.faq .accordion .card .card-body {
+    -webkit-box-shadow: 0px 15px 140px 0px rgba(69, 81, 100, 0.1);
+    box-shadow: 0px 15px 140px 0px rgba(69, 81, 100, 0.1);
+    border-radius: 0 0 10px 10px;
+    padding-top: 0;
+    margin-top: -6px;
+    padding-left: 72px;
+    padding-right: 70px;
+    padding-bottom: 23px;
+    color: rgba(30, 48, 86, 0.8);
+    line-height: 30px;
+}
+
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <img src="/static/images/logo.png" class="d-block w-100" alt="Example Image">
+            </a>
+
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item"><a class="nav-link" href="/">HOME</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#about-us" id="aboutUsLink">ABOUT US</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('user_login') }}">LOGIN</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Carousel -->
+    <div id="carouselExample" class="carousel slide" data-ride="carousel" style="margin-top: 70px;">
+        <ol class="carousel-indicators">
+            <li data-target="#carouselExample" data-slide-to="0" class="active"></li>
+            <li data-target="#carouselExample" data-slide-to="1"></li>
+            <li data-target="#carouselExample" data-slide-to="2"></li>
+        </ol>
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img src="/static/images/image1.jpg" class="d-block w-100" alt="Example Image">
+            </div>
+            <div class="carousel-item">
+                <img src="/static/images/images2.jpg" class="d-block w-100" alt="Example Image">
+            </div>
+            <div class="carousel-item">
+                <img src="/static/images/image3.jpg" class="d-block w-100" alt="Example Image">
+            </div>
+        </div>
+        <a class="carousel-control-prev" href="#carouselExample" role="button" data-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="sr-only">Previous</span>
+        </a>
+        <a class="carousel-control-next" href="#carouselExample" role="button" data-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
+        </a>
+    </div>
+
+    <!-- Services Section -->
+    <div class="container my-5">
+        <div class="text-center mb-4">
+            <h1>Our Services</h1>
+        </div>
+        <div class="row">
+            <div class="col-md-4 text-center">
+                <div class="service-box">
+                    <i class="icon ion-ios-calendar-outline" style="font-size: 50px; color: #007bff;"></i>
+                    <p>Automated Attendance Tracking</p>
+                    <p class="text-muted" style="font-size: 14px;">Our system ensures accurate and timely attendance records, eliminating the need for manual tracking.</p>
+                </div>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="service-box">
+                    <i class="icon ion-ios-analytics" style="font-size: 50px; color: #007bff;"></i>
+                    <p>Real-Time Data Reports</p>
+                    <p class="text-muted" style="font-size: 14px;">Get immediate insights and data analytics on student attendance for better management and reporting.</p>
+                </div>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="service-box">
+                    <i class="icon ion-ios-people" style="font-size: 50px; color: #007bff;"></i>
+                    <p>User-Friendly Interface</p>
+                    <p class="text-muted" style="font-size: 14px;">An intuitive interface that makes it easy for both students and faculty to interact with the system effortlessly.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2 id="about-us" style="text-align: center; margin-top: 20px; font-size: 2em; font-weight: bold;">ABOUT US</h2>
+
+    <div class="responsive-container-block bigContainer" style="margin-top: -40px; display: flex; flex-direction: column; align-items: center; gap: 20px; padding: 0 20px;">
+        <!-- Our Mission -->
+        <div class="responsive-container-block Container" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px; max-width: 1200px; width: 100%;">
+            <img class="mainImg" src="/static/images/about.jpg" alt="Mission Image" style="max-width: 100%; height: auto; flex: 1;">
+            <div class="allText aboveText" style="flex: 1; text-align: left;">
+                <h2 class="text-blk headingText" style="font-size: 2.5em; font-weight: bold; margin-bottom: 10px; color: #333;">Our Mission</h2>
+                <p class="text-blk subHeadingText" style="font-size: 1.5em; font-weight: bold; margin-bottom: 10px; color: #555;">Transforming Attendance Management</p>
+                <p class="text-blk description" style="font-size: 1.2em; line-height: 1.6; color: #666;">
+                    Our mission is to revolutionize attendance management in educational institutions by creating a 
+                    <strong style="color: #333;">Smart Attendance System</strong>. This system ensures students can mark their attendance promptly and efficiently while providing colleges with a reliable, automated solution to manage attendance records seamlessly.
+                </p>
+            </div>
+        </div>
+    
+        <!-- Our Vision -->
+        <div class="responsive-container-block Container bottomContainer" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px; max-width: 1200px; width: 100%;">
+            <img class="mainImg" src="/static/images/home.jpg" alt="Vision Image" style="max-width: 100%; height: auto; flex: 1;">
+            <div class="allText bottomText" style="flex: 1; text-align: left;">
+                <h1 class="text-blk headingText" style="font-size: 2.5em; font-weight: bold; margin-bottom: 10px; color: #333;">Our Vision</h1>
+                <p class="text-blk subHeadingText" style="font-size: 1.5em; font-weight: bold; margin-bottom: 10px; color: #555;">A Smarter Future for Education</p>
+                <p class="text-blk description" style="font-size: 1.2em; line-height: 1.6; color: #666;">
+                    Our vision is to leverage technology to make education smarter and more efficient. By automating essential processes like attendance, we aim to save time for students and administrators, fostering a more productive and technologically advanced educational environment.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    
+    <section class="faq">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-xl-8 col-lg-8 text-center">
+                    <div class="section-title">
+                        <h4>FAQ's</h4>
+                        <h2>Frequently Asked <span>Questions</span></h2>
+                    </div>
+                </div>
+            </div>
+    
+            <div class="row">
+                <div class="col-xl-12 col-lg-12">
+                    <div class="accordion" id="accordionExample">
+                        <div class="row">
+                            <div class="col-xl-6 col-lg-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">
+                                            <button class="card-body" type="button" data-toggle="collapse"
+                                                data-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                                How does the MyUpasthiti work?
+                                            </button>
+                                        </h5>
+                                    </div>
+    
+                                    <div id="collapseOne" class="collapse" data-parent="#accordionExample">
+                                        <div class="card-body">
+                                            MyUpasthiti  uses geotracking and to verify the user’s location. Attendance can only be marked if the user is present at the predefined location.
+                                        </div>
+                                    </div>
+                                </div>
+    
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">
+                                            <button class="card-body" type="button" data-toggle="collapse"
+                                                data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                                
+                                                What happens if I am outside the predefined location?
+                                            </button>
+                                        </h5>
+                                    </div>
+                                    <div id="collapseTwo" class="collapse" data-parent="#accordionExample">
+                                        <div class="card-body">
+                                            The system will not allow you to mark your attendance. You will receive an error message prompting you to move to the required location.
+                                        </div>
+                                    </div>
+                                </div>
+    
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">
+                                            <button class="card-body" type="button" data-toggle="collapse"
+                                                data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                               Can I mark attendance remotely?
+                                            </button>
+                                        </h5>
+                                    </div>
+                                    <div id="collapseThree" class="collapse" data-parent="#accordionExample">
+                                        <div class="card-body">
+                                            No, attendance marking is restricted to the specified location as determined by the system.
+                                        </div>
+                                    </div>
+                                </div>
+    
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">
+                                            <button class="card-body" type="button" data-toggle="collapse"
+                                                data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                                What permissions are required for this system to work?
+                                            </button>
+                                        </h5>
+                                    </div>
+                                    <div id="collapseFour" class="collapse" data-parent="#accordionExample">
+                                        <div class="card-body">
+                                            You need to grant location access to the website. Ensure that GPS is enabled on your device.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+    
+                            <div class="col-xl-6 col-lg-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">
+                                            <button class="card-body" type="button" data-toggle="collapse"
+                                                data-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                                                How is the location data secured?
+                                            </button>
+                                        </h5>
+                                    </div>
+    
+                                    <div id="collapseFive" class="collapse" data-parent="#accordionExample">
+                                        <div class="card-body">
+                                            Location data is encrypted and used solely for verifying attendance. The system adheres to data privacy and security regulations.
+                                        </div>
+                                    </div>
+                                </div>
+    
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">
+                                            <button class="card-body" type="button" data-toggle="collapse"
+                                                data-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
+                                                What if my device doesn't support location tracking?
+                                            </button>
+                                        </h5>
+                                    </div>
+                                    <div id="collapseSix" class="collapse" data-parent="#accordionExample">
+                                        <div class="card-body">
+                                            You will not be able to mark attendance.Inform immediately to Faculty through out the Report form.
+                                        </div>
+                                    </div>
+                                </div>
+    
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">
+                                            <button class="card-body" type="button" data-toggle="collapse"
+                                                data-target="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">
+                                                Can I view my attendance history?
+                                            </button>
+                                        </h5>
+                                    </div>
+                                    <div id="collapseSeven" class="collapse" data-parent="#accordionExample">
+                                        <div class="card-body">
+                                            Yes, the system provides an option to view past attendance records. Navigate to the " View Attendance " section in the dashboard.
+                                        </div>
+                                    </div>
+                                </div>
+    
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">
+                                            <button class="card-body" type="button" data-toggle="collapse"
+                                                data-target="#collapseEight" aria-expanded="false" aria-controls="collapseEight">
+                                                What should I do if my location isn't detected correctly?
+                                            </button>
+                                        </h5>
+                                    </div>
+                                    <div id="collapseEight" class="collapse" data-parent="#accordionExample">
+                                        <div class="card-body">
+                                            Ensure that your GPS is enabled and has a clear view of the sky. Check your internet connection. If the issue persists, contact technical support.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+    
+                        </div>
+    
+                    </div>
+    
+                </div>
+            </div>
+        </div>
+    </section>
+    
+
+    <!-- Footer -->
+    <div class="footer-basic">
+        <footer>
+            <!-- Developer Information Section -->
+            <div class="developer-info" style="text-align: center; margin-top: 20px; font-size: 14px; color: #555;">
+                <p>🧑‍💻 Developed by 🧑‍💻:</p>
+                <p><strong>Shital Gokhe</strong> - <a href="mailto:shitalgokhe@gmail.com">shitalgokhe@gmail.com</a></p>
+                <p><strong>Shivam Malviya</strong> - <a href="mailto:malviyashivam238@gmail.com">malviyashivam238@gmail.com</a></p>
+            </div>
+            <div class="social">
+                <a href="#"><i class="icon ion-social-instagram"></i></a>
+                <a href="#"><i class="icon ion-social-snapchat"></i></a>
+                <a href="#"><i class="icon ion-social-twitter"></i></a>
+                <a href="#"><i class="icon ion-social-facebook"></i></a>
+            </div>
+            
+            <p class="copyright">MyUpasthiti © 2024</p>
+    
+        </footer>
+    </div>
+    
+
+    <!-- Custom JavaScript -->
+    <script>
+        // Smooth scroll and hide navbar on mobile when clicking "About Us"
+        $(document).ready(function() {
+            $('#aboutUsLink').on('click', function() {
+                // Scroll to the "About Us" section
+                $('html, body').animate({
+                    scrollTop: $('#about-us').offset().top
+                }, 500);
+
+                // Hide the navbar on mobile after clicking "About Us"
+                if ($(window).width() < 768) {
+                    $('.navbar-collapse').collapse('hide');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

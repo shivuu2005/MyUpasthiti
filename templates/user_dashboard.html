@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Two+Tone|Material+Icons+Round|Material+Icons+Sharp" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+   :root {
+    --header-height: 4rem; /* Adjust header height */
+    --sidebar-width: 100%; /* Full width for the sidebar */
+}
+
+/* Sidebar styling */
+.sidebar {
+    position: fixed;
+    top: var(--header-height); /* Place below the header */
+    left: -140%; /* Sidebar starts off-screen from the left */
+    width: var(--sidebar-width); /* Full screen width */
+    height: 100vh; /* Full screen height */
+    background-color: #f3f4f6; /* Sidebar background */
+    z-index: 1000; /* Ensure sidebar is above other elements */
+    transition: left 0.3s ease-in-out; /* Smooth transition for sliding effect */
+}
+
+/* When sidebar is active (opened by hamburger menu) */
+.sidebar.open {
+    left: 0; /* Move sidebar into view */
+}
+
+/* Overlay styling */
+.overlay {
+    position: fixed;
+    top: var(--header-height); /* Start below the header */
+    left: 0;
+    width: 100vw;
+    height: calc(100vh - var(--header-height)); /* Cover area below header */
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 500; /* Ensure the overlay is behind the sidebar */
+    visibility: hidden; /* Start with the overlay hidden */
+    opacity: 0; /* Make overlay invisible */
+    transition: opacity 0.3s ease-in-out; /* Smooth transition */
+}
+
+/* When the sidebar is open, show the overlay */
+.overlay.visible {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Navbar styling */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: var(--header-height); /* Set height using root variable */
+    background-color: #fff; /* Navbar background color */
+    z-index: 1100; /* Ensure navbar is above sidebar */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional shadow for effect */
+}
+
+/* Responsiveness */
+@media (max-width: 768px) {
+    .navbar {
+        padding: 0 0.5rem; /* Adjust padding for smaller screens */
+    }
+}
+
+
+</style>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const mobileMenuButton = document.querySelector('.mobile-menu-button'); // Hamburger button
+    const sidebar = document.querySelector('.sidebar'); // Sidebar element
+    const overlay = document.querySelector('.overlay'); // Overlay element
+
+    // Open/close the sidebar when the hamburger menu button is clicked
+    mobileMenuButton.addEventListener('click', () => {
+        sidebar.classList.toggle('open'); // Toggle sidebar visibility
+        overlay.classList.toggle('visible'); // Show or hide the overlay
+        document.body.classList.toggle('no-scroll'); // Prevent scrolling when sidebar is open
+    });
+
+    // Close the sidebar when clicking on the overlay
+    overlay.addEventListener('click', () => {
+        sidebar.classList.remove('open'); // Hide sidebar
+        overlay.classList.remove('visible'); // Hide overlay
+        document.body.classList.remove('no-scroll'); // Allow scrolling again
+    });
+});
+
+
+</script>
+</head>
+
+<body class="bg-indigo-50 min-h-screen overflow-x-hidden">
+    <!-- Overlay for mobile sidebar -->
+    <div class="overlay fixed inset-0 bg-indigo-90/50 z-40 hidden opacity-0 transition-opacity duration-300"></div>
+
+    <!-- Header -->
+    <header class="fixed w-full bg-white text-indigo-800 z-50 shadow-lg animate-slide-down">
+        <div class="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between h-16">
+            <!-- Logo -->
+            <div class="text-xl font-bold text-blue-900">
+                <img src="/static/images/logo.png" style="height: 70px; width: auto;" alt="Logo">
+            </div>
+            
+            <button class="mobile-menu-button lg:hidden text-3xl">
+                <span class="material-icons-outlined">menu</span>
+            </button>
+            <!-- Header Icons -->
+            <div class="hidden lg:flex items-center space-x-2">
+                <form action="{{ url_for('logout') }}" method="GET" class="flex items-center w-full text-gray-600 hover:text-indigo-800 py-4 transition-all duration-300 hover:translate-x-1">
+                    <span class="material-icons-outlined mr-2">power_settings_new</span>
+                    <button type="submit" class="text-left">Logout</button>
+                </form>
+            </div>
+        </div>
+    </header>
+        <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div id="flash-container" class="fixed top-4 right-4 space-y-2">
+        {% for category, message in messages %}
+          <div class="flash-message p-4 rounded-lg shadow-lg text-white 
+                      {% if category == 'success' %} bg-green-500 
+                      {% elif category == 'info' %} bg-blue-500 
+                      {% elif category == 'warning' %} bg-yellow-500 
+                      {% elif category == 'danger' %} bg-red-500 
+                      {% else %} bg-gray-500 {% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+    <!-- Main Content -->
+    <div class="pt-16 max-w-7xl mx-auto flex">
+        <!-- Sidebar -->
+        <aside class="sidebar fixed lg:static w-[240px] bg-indigo-50 h-[calc(100vh-4rem)] lg:h-auto transform translate-x-full lg:translate-x-0 transition-transform duration-300 z-45 overflow-y-auto p-4 right-0">
+            <div class="bg-white rounded-xl shadow-lg mb-6 p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                <a href="/user_dashboard" class="flex items-center w-full text-gray-600 hover:text-indigo-800 py-4 transition-all duration-300 hover:translate-x-1">
+                    <span class="material-icons-outlined mr-2">dashboard</span>
+                    <span>Dashboard</span>
+                </a>
+               <!-- <a href="/view_attendance_page" class="flex items-center w-full text-gray-600 hover:text-indigo-800 py-4 transition-all duration-300 hover:translate-x-1">
+                    <span class="material-icons-outlined mr-2">check_circle</span>
+                    <span>View attandance</span>
+                   </a>
+                <a href="/view_users" class="flex items-center w-full text-gray-600 hover:text-indigo-800 py-4 transition-all duration-300 hover:translate-x-1">
+                    <span class="material-icons-outlined mr-2">visibility</span>
+                    <span>View User</span>
+                </a>
+                -->
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                
+                <a href="/report_issue" class="flex items-center w-full text-gray-600 hover:text-indigo-800 py-4 transition-all duration-300 hover:translate-x-1">
+                    <span class="material-icons-outlined mr-2">description</span>
+                    <span>Report Issue</span>
+                </a>
+                <a href="/change_password" class="flex items-center w-full text-gray-600 hover:text-indigo-800 py-4 transition-all duration-300 hover:translate-x-1">
+                    <span class="material-icons-outlined mr-2">lock_reset</span>
+                      <span>Update Password</span>
+                  </a>
+                <form action="{{ url_for('admin_logout') }}" method="GET" class="flex items-center w-full text-gray-600 hover:text-indigo-800 py-4 transition-all duration-300 hover:translate-x-1">
+                    <span class="material-icons-outlined mr-2">power_settings_new</span>
+                    <a href="/logout" class="text-left">Logout</a>
+                </form>
+            </div>
+        </aside>
+
+        <!-- Main Area -->
+        <main class="flex-1 p-4">
+            <!-- Greeting Section -->
+            <div class="flex flex-col lg:flex-row gap-4 mb-6">
+                <div class="flex-1 bg-indigo-100 border border-indigo-200 rounded-xl p-6 animate-fade-in">
+                    <h2 class="text-4xl md:text-5xl text-blue-900">
+                        Welcome <br><strong>{{ username }}</strong>
+                    </h2>
+                    <span class="inline-block mt-8 px-8 py-2 rounded-full text-xl font-bold text-white bg-indigo-800">
+                        {{ current_date }}
+                    </span>
+                </div>
+
+                <div class="flex-1 bg-blue-100 border border-blue-200 rounded-xl p-6 animate-fade-in">
+
+                     <!-- Countdown Timer -->
+                    <div id="countdown" class="text-lg font-bold text-blue-800 mt-4"></div>
+                  <br>
+                  
+                  <!-- Attendance Form -->
+                  <form action="{{ url_for('user_dashboard') }}" id="attendance-form" method="POST">
+                    <input type="hidden" name="latitude" id="latitude">
+                    <input  type="hidden" name="longitude" id="longitude">
+                
+                    <!-- Radio Button for Mark Attendance -->
+                    <div class="flex items-center space-x-2">
+                        <input type="radio" id="mark-attendance" name="action" value="mark" class="w-5 h-5">
+                        <label for="mark-attendance" class="text-lg font-semibold text-blue-900">Mark Attendance</label>
+                        <span class="text-green-600 text-2xl font-bold">✓</span>
+                    </div>
+                
+                    <!-- Radio Button for Unmark Attendance -->
+                    <div class="flex items-center space-x-2">
+                        <input type="radio" id="unmark-attendance" name="action" value="unmark" class="w-5 h-5">
+                        <label for="unmark-attendance" class="text-lg font-semibold text-blue-900">Unmark Attendance</label>
+                        <span class="text-red-600 text-2xl font-bold">✗</span>
+                    </div>
+                
+                    <!-- Submit Button -->
+                    <button type="submit" id="submit-btn" class="btn btn-primary mt-6 px-8 py-2 rounded-full bg-blue-800 text-white hover:bg-blue-900">
+                        Submit
+                    </button>
+                </form>
+                <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    const latitudeInput = document.getElementById('latitude');
+                    const longitudeInput = document.getElementById('longitude');
+                    const submitBtn = document.getElementById('submit-btn');
+                    const countdownDiv = document.getElementById('countdown');
+                    let countdown = 5;
+                
+                    // Disable the submit button initially
+                    submitBtn.disabled = true;
+                
+                    // Function to start the countdown
+                    const startCountdown = () => {
+                        countdownDiv.textContent = `Fetching location... Please wait ${countdown} seconds.`;
+                        const interval = setInterval(() => {
+                            countdown--;
+                            if (countdown > 0) {
+                                countdownDiv.textContent = `Fetching location... Please wait ${countdown} seconds.`;
+                            } else {
+                                clearInterval(interval);
+                                countdownDiv.textContent = "Location fetched! You can now submit the form.";
+                                submitBtn.disabled = false; // Enable the submit button
+                            }
+                        }, 1000);
+                    };
+                
+                    // Function to handle errors and prompt location services
+                    const handleLocationError = (error) => {
+                        console.error("Error fetching location: ", error.message);
+                        let message;
+                
+                        switch (error.code) {
+                            case error.PERMISSION_DENIED:
+                                message = "Location access is denied. Please enable location services.";
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                message = "Location information is unavailable. Please ensure your device has location services enabled.";
+                                break;
+                            case error.TIMEOUT:
+                                message = "Request to fetch location timed out. Please try again.";
+                                break;
+                            default:
+                                message = "An unknown error occurred while fetching your location.";
+                        }
+                
+                        countdownDiv.textContent = message;
+                        alert(`${message}\n\nPlease enable location services in your browser or device settings to proceed.`);
+                    };
+                
+                    // Function to fetch location
+                    const fetchLocation = () => {
+                        if (navigator.geolocation) {
+                            navigator.geolocation.getCurrentPosition(
+                                (position) => {
+                                    // Populate latitude and longitude inputs
+                                    latitudeInput.value = position.coords.latitude;
+                                    longitudeInput.value = position.coords.longitude;
+                
+                                    // Start the countdown
+                                    startCountdown();
+                                },
+                                (error) => {
+                                    handleLocationError(error);
+                                }
+                            );
+                        } else {
+                            countdownDiv.textContent = "Geolocation is not supported by your browser.";
+                            alert("Your browser does not support Geolocation. Please update your browser to proceed.");
+                        }
+                    };
+                
+                    // Check permissions and fetch location
+                    if (navigator.permissions) {
+                        navigator.permissions.query({ name: 'geolocation' }).then((permissionStatus) => {
+                            if (permissionStatus.state === 'granted') {
+                                // Location access granted, fetch location
+                                fetchLocation();
+                            } else if (permissionStatus.state === 'prompt') {
+                                // Location access not yet granted, ask the user
+                                countdownDiv.textContent = "Please allow location access to proceed.";
+                                alert("Please allow location access in the prompt to proceed.");
+                                fetchLocation();
+                            } else if (permissionStatus.state === 'denied') {
+                                // Location access denied, warn the user
+                                countdownDiv.textContent = "Location access is denied. Please enable it in browser settings.";
+                                alert("Location services are disabled. Please enable location access in your browser or device settings.");
+                            }
+                        });
+                    } else {
+                        // Fallback if the Permissions API is not supported
+                        fetchLocation();
+                    }
+                });
+</script>                
+                </div>  
+            </div>
+
+            <!-- Stats Section -->
+<div class="flex flex-col lg:flex-row gap-4 mb-6">
+    <!-- Left Section: Stats -->
+    <div class="flex flex-col lg:flex-row gap-4 bg-indigo-100 border border-indigo-200 rounded-xl p-6 animate-fade-in w-full lg:w-1/2">
+        <!-- Text Section -->
+        <div class="flex flex-col items-center justify-center text-center mb-4">
+            <h3 id="totalClasses" class="text-xl font-bold text-indigo-800 mb-2">Total Classes: Loading...</h3>
+            <h3 id="totalPresent" class="text-xl font-bold text-indigo-800 mb-2">Total Present: Loading...</h3>
+        </div>
+    
+        <!-- Graph Section -->
+        <div class="flex-1 flex justify-center items-center">
+            <div class="relative w-50 mx-auto">
+                <canvas id="attendanceChart" class="w-full h-full"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    fetch('/attendance-data')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                console.error(data.error);
+                return;
+            }
+
+            // Update text section
+            document.getElementById('totalClasses').textContent = `Total Classes: ${data.total_classes}`;
+            document.getElementById('totalPresent').textContent = `Total Present: ${data.present_classes}`;
+
+            // Render chart
+            const ctx = document.getElementById('attendanceChart').getContext('2d');
+            const attendanceChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Present', 'Absent'],
+                    datasets: [{
+                        data: [data.present_classes, data.absent_classes],
+                        backgroundColor: ['#4CAF50', '#F44336'],
+                        hoverBackgroundColor: ['#45A049', '#FF5252']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Attendance Summary'
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching attendance data:', error);
+        });
+});
+</script>
+
+
+    
+
+    <!-- Right Section: Date Selection and Attendance Table -->
+    <div class="max-w-lg mx-auto p-6 mt-10 lg:mt-0 bg-white rounded-xl shadow-lg w-full lg:w-1/2">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">View Attendance For Specific Date </h3>
+
+        <!-- Date Selection Form -->
+        <form method="POST" action="/user_view_attendance">
+            <div class="flex flex-col lg:flex-row gap-4 mb-6">
+                <div class="flex-1 bg-indigo-100 border border-indigo-200 rounded-xl p-6 animate-fade-in">
+                    <div class="mb-4">
+                        <label for="attendance_date" class="block text-gray-700 font-medium mb-2">Select Date:</label>
+                        <input type="date" id="attendance_date" name="attendance_date" value="{{ selected_date }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-4 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-300">View Attendance</button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Attendance Table -->
+        <div class="flex-1 bg-indigo-100 border border-indigo-200 rounded-xl p-6 animate-fade-in">
+            <h3 class="text-xl font-bold text-indigo-800 mb-2">Attendance Table</h3>
+            <p class="mb-4">Showing data for: 
+                {% if start_date and end_date %}
+                    {{ start_date }} to {{ end_date }}
+                {% else %}
+                    {{ selected_date }}
+                {% endif %}
+            </p>
+
+            <table class="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
+                <thead>
+                    <tr class="bg-indigo-600 text-white">
+                        <th class="py-2 px-4 text-left">Date</th>
+                        <th class="py-2 px-4 text-left">Time</th>
+                        <th class="py-2 px-4 text-left">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in attendance_records %}
+                        <tr class="border-b border-gray-200">
+                            <td class="py-2 px-4">{{ record.date }}</td>
+                            <td class="py-2 px-4">{{ record.time }}</td>
+                            <td class="py-2 px-4">
+                                <span class="text-sm font-semibold {% if record.status == 'Present' %}text-green-600{% else %}text-red-600{% endif %}">
+                                    {{ record.status }}
+                                </span>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="3" class="py-2 px-4 text-center text-gray-500">No attendance records found.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+
+            
+                </div>
+                    
+        </main>
+    </div>
+    <script>
+        // Automatically remove flash messages after 2 seconds
+        setTimeout(() => {
+          const flashContainer = document.getElementById('flash-container');
+          if (flashContainer) {
+            flashContainer.style.transition = "opacity 0.5s ease";
+            flashContainer.style.opacity = "0"; // Fade out
+            setTimeout(() => flashContainer.remove(), 500); // Remove after fade
+          }
+        }, 2000); // 2 seconds delay
+      </script>
+</body>
+
+</html>
