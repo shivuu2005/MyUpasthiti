@@ -196,7 +196,7 @@ def view_attendance():
         {
             "name": user[1],
             "enrollment_no": user[2],
-            "status": attendance_dict.get(user[0], f"unmarked wait till 11 am ")  #{attendance_date}
+            "status": attendance_dict.get(user[0], f"Unmark ")  #{attendance_date}
         }
         for user in all_users
     ]
@@ -378,7 +378,7 @@ def admin_logout():
 @app.before_request
 def auto_mark_absent():
     current_time = datetime.now().strftime("%H:%M:%S")
-    cutoff_time = "11:00:00"
+    cutoff_time = "10:00:00"
     if current_time > cutoff_time:
         today_date = date.today()
         cur = mysql.connection.cursor()
@@ -659,9 +659,9 @@ def user_dashboard():
             current_hour = datetime.now().hour
             current_time = datetime.now().strftime("%H:%M:%S")
 
-            # Check if the time is within allowed hours (9 AM - 11 AM)
-            if current_hour < 9 or current_hour >= 11:
-                flash("Attendance can only be marked between 09 AM and 11:00 AM.", "danger")
+            # Check if the time is within allowed hours (9 AM - 10 AM)
+            if current_hour < 9 or current_hour >= 10:
+                flash("Attendance can only be marked between 09 AM and 10:00 AM.", "danger")
                 return redirect(url_for("user_dashboard"))
 
             # Connect to the database
