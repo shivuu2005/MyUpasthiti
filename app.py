@@ -31,8 +31,8 @@ mysql = MySQL(app)
 
 
 # College coordinates
-COLLEGE_LAT = 23.2599333
-COLLEGE_LON = 77.412615    
+COLLEGE_LAT = 23.2166749
+COLLEGE_LON = 77.3952933  
 
 
 MAX_DISTANCE_METERS = 150  # Radius of geofence in meters
