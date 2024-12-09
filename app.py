@@ -196,7 +196,7 @@ def view_attendance():
         {
             "name": user[1],
             "enrollment_no": user[2],
-            "status": attendance_dict.get(user[0])  #{attendance_date}
+            "status": attendance_dict.get(user[0]) or "Absent" #{attendance_date}
         }
         for user in all_users
     ]
@@ -375,32 +375,38 @@ def admin_logout():
     return redirect('/admin_login')
 
 
-@app.before_request
 def auto_mark_absent():
     current_time = datetime.now().strftime("%H:%M:%S")
-    cutoff_time = "11:30:00"
+    cutoff_time = "12:00:00"
+
+    # Only proceed if the current time is past the cutoff
     if current_time > cutoff_time:
         today_date = date.today()
+
+        # Use a database connection to mark absentees
         cur = mysql.connection.cursor()
 
-        # Fetch all user IDs who haven't marked attendance today
+        # Fetch all users who haven't marked attendance today
         cur.execute("""
-            SELECT id FROM users WHERE id NOT IN (
+            SELECT id FROM users 
+            WHERE id NOT IN (
                 SELECT user_id FROM attendance WHERE date = %s
             )
-        """, [today_date])
+        """, (today_date,))
         absent_users = cur.fetchall()
 
-        # Mark them as "Absent" in attendance
-        for user_id in absent_users:
-            cur.execute("""
-                INSERT INTO attendance (user_id, date, time, status)
-                VALUES (%s, %s, %s, %s)
-            """, (user_id[0], today_date, current_time, "Absent"))
+        # If there are absent users, mark their attendance
+        if absent_users:
+            for user in absent_users:
+                cur.execute("""
+                    INSERT INTO attendance (user_id, date, time, status)
+                    VALUES (%s, %s, %s, %s)
+                """, (user[0], today_date, current_time, "Absent"))
 
+        # Commit changes and close cursor
         mysql.connection.commit()
         cur.close()
-
+        
 @app.route('/generate_report', methods=['POST'])
 def generate_report():
     duration = request.form.get('report_duration')  # daily, monthly, or custom
