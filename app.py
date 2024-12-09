@@ -378,7 +378,7 @@ def admin_logout():
 @app.before_request
 def auto_mark_absent():
     current_time = datetime.now().strftime("%H:%M:%S")
-    cutoff_time = "10:00:00"
+    cutoff_time = "11:30:00"
     if current_time > cutoff_time:
         today_date = date.today()
         cur = mysql.connection.cursor()
