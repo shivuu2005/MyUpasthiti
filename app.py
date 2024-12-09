@@ -196,7 +196,7 @@ def view_attendance():
         {
             "name": user[1],
             "enrollment_no": user[2],
-            "status": attendance_dict.get(user[0], f"Unmark ")  #{attendance_date}
+            "status": attendance_dict.get(user[0])  #{attendance_date}
         }
         for user in all_users
     ]
