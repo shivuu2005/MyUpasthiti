@@ -24,8 +24,48 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='footer.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='aboutus.css') }}">
 
+    <script>
+  document.addEventListener('contextmenu', function (e) {
+    e.preventDefault();
+  });
+
+  // Specific keyboard shortcuts ko disable karne ke liye
+  document.addEventListener('keydown', function (e) {
+    if (
+      e.ctrlKey && 
+      (e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S' || e.key === 'i' || e.key === 'I')
+    ) {
+      e.preventDefault();
+    }
+    if (e.key === 'F12') {
+      e.preventDefault();
+    }
+  });
+
+  document.addEventListener('copy', function (e) {
+    e.preventDefault(); // Content copy hone se roke
+    alert('Content copying is disabled.');
+  });
+
+  (function () {
+    var element = new Image();
+    Object.defineProperty(element, 'id', {
+      get: function () {
+        alert('DevTools is open. Please close it to continue.');
+      }
+    });
+    console.log(element);
+  })();
+</script>
+
     <style>
         /* Custom styling for smooth scroll */
+        body {
+  -webkit-user-select: none; /* Chrome, Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+ */
+  user-select: none; /* Standard */
+}
         html {
             scroll-behavior: smooth;
         }
