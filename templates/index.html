@@ -80,7 +80,7 @@
             // If the tab can't close, redirect to the active tab's URL
             setTimeout(() => {
                 window.location.href = event.data.redirectUrl || "/";
-            }, 1000); // Delay for compatibility
+            }, 50); // Delay for compatibility
         }
     };
 
