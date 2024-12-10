@@ -49,6 +49,12 @@
     --header-height: 4rem; /* Adjust header height */
     --sidebar-width: 100%; /* Full width for the sidebar */
 }
+         .session-timer {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #ff0000;
+        }
+
            body {
   -webkit-user-select: none; /* Chrome, Safari */
   -moz-user-select: none; /* Firefox */
@@ -265,6 +271,34 @@ document.addEventListener("DOMContentLoaded", () => {
                         Submit
                     </button>
                 </form>
+                    <p>You are logged in. Your session will expire in:</p>
+    <div class="session-timer" id="session-timer">10:00</div>
+    <script>
+        // Countdown duration in seconds
+        let countdownDuration = 10 * 60; // 10 minutes = 600 seconds
+
+        // Function to format time in MM:SS
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        // Update the countdown timer every second
+        const sessionTimerElement = document.getElementById("session-timer");
+        const countdownInterval = setInterval(() => {
+            if (countdownDuration > 0) {
+                countdownDuration -= 1;
+                sessionTimerElement.textContent = formatTime(countdownDuration);
+            } else {
+                // When the timer ends, log out the user automatically
+                clearInterval(countdownInterval);
+                alert("Your session has expired. You will be logged out.");
+                window.location.href = "{{ url_for('logout') }}";
+            }
+        }, 1000); // Update every 1 second
+    </script>
+    
                 <script>
                 document.addEventListener('DOMContentLoaded', () => {
                     const latitudeInput = document.getElementById('latitude');
