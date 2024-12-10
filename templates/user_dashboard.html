@@ -10,11 +10,50 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+  document.addEventListener('contextmenu', function (e) {
+    e.preventDefault();
+  });
+
+  // Specific keyboard shortcuts ko disable karne ke liye
+  document.addEventListener('keydown', function (e) {
+    if (
+      e.ctrlKey && 
+      (e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S' || e.key === 'i' || e.key === 'I')
+    ) {
+      e.preventDefault();
+    }
+    if (e.key === 'F12') {
+      e.preventDefault();
+    }
+  });
+
+  document.addEventListener('copy', function (e) {
+    e.preventDefault(); // Content copy hone se roke
+    alert('Content copying is disabled.');
+  });
+
+  (function () {
+    var element = new Image();
+    Object.defineProperty(element, 'id', {
+      get: function () {
+        alert('DevTools is open. Please close it to continue.');
+      }
+    });
+    console.log(element);
+  })();
+</script>
     
     <style>
    :root {
     --header-height: 4rem; /* Adjust header height */
     --sidebar-width: 100%; /* Full width for the sidebar */
+}
+           body {
+  -webkit-user-select: none; /* Chrome, Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+ */
+  user-select: none; /* Standard */
 }
 
 /* Sidebar styling */
