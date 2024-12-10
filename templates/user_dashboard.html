@@ -45,6 +45,39 @@
     console.log(element);
   })();
 </script>
+    <script>
+    const broadcastChannel = new BroadcastChannel("tab_check_channel");
+
+    let isTabActive = true;
+
+    // Notify other tabs when this tab is active
+    broadcastChannel.postMessage({ type: "check_active_tab" });
+
+    // Listen for messages from other tabs
+    broadcastChannel.onmessage = (event) => {
+        if (event.data.type === "check_active_tab") {
+            if (isTabActive) {
+                // Notify the new tab that this tab is already active
+                broadcastChannel.postMessage({ type: "active_tab_exists", redirectUrl: window.location.href });
+            }
+        } else if (event.data.type === "active_tab_exists") {
+            // Second tab detects an active tab exists
+            alert("This website is already open in another tab. Closing this tab.");
+            window.close();
+
+            // If the tab can't close, redirect to the active tab's URL
+            setTimeout(() => {
+                window.location.href = event.data.redirectUrl || "/";
+            }, 1000); // Delay for compatibility
+        }
+    };
+
+    // Mark this tab as inactive when it closes
+    window.addEventListener("beforeunload", () => {
+        isTabActive = false;
+    });
+</script>
+
     
     <style>
    :root {
