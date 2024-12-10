@@ -548,9 +548,31 @@ def user_login():
     if request.method == "POST":
         enrollment_no = request.form["enrollment_no"]
         password = request.form["password"].encode("utf-8")
-        device_token = hashlib.sha256(request.remote_addr.encode('utf-8')).hexdigest()  # Generate device token
 
-        # Fetching user from DB
+        # Generate a more unique device token using IP and User-Agent
+        device_info = f"{request.remote_addr}_{request.headers.get('User-Agent')}"
+        device_token = hashlib.sha256(device_info.encode("utf-8")).hexdigest()
+
+        # Check device cooldown
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT last_logout_time FROM device_activity WHERE device_token = %s", [device_token])
+        device_activity = cur.fetchone()
+        cur.close()
+
+        if device_activity:
+            last_logout_time = device_activity[0]
+            current_time = get_current_time()
+
+            # Check if cooldown period has passed
+            if last_logout_time:
+                cooldown_end = last_logout_time + timedelta(minutes=15)
+                if current_time < cooldown_end:
+                    remaining_time = (cooldown_end - current_time).seconds // 60
+                    flash(f"Login restricted. Try again in {remaining_time} minutes.", "danger")
+                    print(f"Device {device_token} login restricted for {remaining_time} minutes.")
+                    return redirect(url_for("user_login"))
+
+        # Fetching user from the database
         cur = mysql.connection.cursor()
         cur.execute("SELECT * FROM users WHERE enrollment_no = %s", [enrollment_no])
         user = cur.fetchone()
@@ -558,32 +580,14 @@ def user_login():
 
         if user:
             db_password = user[7].encode("utf-8")  # Password in database
-            last_logout_time = user[8]  # Assuming last_logout_time is at index 8
-            last_device_token = user[9]  # Assuming device_token is at index 9
-
-            # Debugging logs
-            print(f"Last Logout Time: {last_logout_time}")
-            print(f"Last Device Token: {last_device_token}")
-            print(f"Current Device Token: {device_token}")
 
             # Check password validity
             if bcrypt.checkpw(password, db_password):
-                current_time = get_current_time()
-
-                # Check if the device token matches and cooldown has passed
-                if last_device_token == device_token:
-                    if last_logout_time:
-                        cooldown_end = last_logout_time + timedelta(minutes=15)
-                        if current_time < cooldown_end:
-                            remaining_time = (cooldown_end - current_time).seconds // 60
-                            flash(f"Login restricted. Try again in {remaining_time} minutes.", "danger")
-                            print(f"Device {device_token} login restricted. Try again in {remaining_time} minutes.")
-                            return redirect(url_for("user_login"))
-
                 # Successful login
                 session["user_id"] = user[0]
                 session["username"] = user[1]
                 session["device_token"] = device_token  # Save device token to session
+
                 flash("Login successful!", "success")
                 return redirect(url_for("user_dashboard"))
             else:
@@ -592,6 +596,7 @@ def user_login():
             flash("User not found!", "danger")
 
     return render_template("user_login.html")
+
 
 # Logout route
 @app.route("/logout")
@@ -603,17 +608,14 @@ def logout():
         # Debugging logs for logout
         print(f"Logging out user {user_id} from device {device_token}")
 
-        # Update last_logout_time and device_token in the database
+        # Update last_logout_time for the device in device_activity table
         cur = mysql.connection.cursor()
         current_time = get_current_time()
-        
-
         cur.execute("""
-            UPDATE users
-            SET last_logout_time = %s, device_token = %s
-            WHERE id = %s
-        """, (current_time, device_token, user_id))
-
+            INSERT INTO device_activity (device_token, last_logout_time)
+            VALUES (%s, %s)
+            ON DUPLICATE KEY UPDATE last_logout_time = %s
+        """, (device_token, current_time, current_time))
         mysql.connection.commit()
         cur.close()
 
@@ -623,7 +625,7 @@ def logout():
         print(f"User {user_id} logged out successfully on device {device_token}.")
     else:
         flash("You are not logged in.", "danger")
-    
+
     return redirect(url_for("user_login"))
 
 
