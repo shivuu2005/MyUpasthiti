@@ -13,6 +13,7 @@ import pytz
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
+app.permanent_session_lifetime = timedelta(minutes=10)  # Auto logout after 10 minutes
 
 # MySQL Configuration
 
