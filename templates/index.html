@@ -62,34 +62,36 @@
     const siteKey = "site_open";
 
     function handleTab() {
-        // Check if another tab has already opened the site
         const isAlreadyOpen = localStorage.getItem(siteKey);
 
         if (isAlreadyOpen) {
-            alert("The website is already open in another tab. Please use that tab.");
-            window.close(); // Close the current tab
+            // Redirect user to a specific page or close the tab
+            window.location.href = "about:blank";  // You can redirect them to a different page
+            alert("This website is already open in another tab. You cannot open it again.");
         } else {
-            // Mark the site as open
+            // Set the flag in localStorage
             localStorage.setItem(siteKey, "true");
 
-            // Remove the lock when the tab is closed or refreshed
+            // When the user closes the tab or navigates away, remove the flag
             window.addEventListener("beforeunload", () => {
                 localStorage.removeItem(siteKey);
             });
         }
     }
 
+    // Call the function when the page loads
     handleTab();
 
-    // Listen for `storage` changes to detect activity from another tab
+    // Listen for changes in localStorage from other tabs
     window.addEventListener("storage", (event) => {
         if (event.key === siteKey && event.newValue === "true") {
-            alert("The website has been opened in another tab. This tab will now close.");
-            localStorage.removeItem(siteKey); // Clear the lock in this tab
-            window.close(); // Close the current tab
+            // Block second tab from accessing the page and redirect to about:blank
+            window.location.href = "about:blank";
+            alert("This website is already open in another tab. This tab will now close.");
         }
     });
 </script>
+
 
 
     <style>
