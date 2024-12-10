@@ -7,6 +7,9 @@ import MySQLdb.cursors
 import math
 from os import getenv
 import os
+import hashlib
+import uuid
+import pytz
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
@@ -32,8 +35,7 @@ mysql = MySQL(app)
 
 # College coordinates
 COLLEGE_LAT = 23.1821179
-COLLEGE_LON = 77.3018561  
-
+COLLEGE_LON = 77.3018561   
 
 MAX_DISTANCE_METERS = 150  # Radius of geofence in meters
 
@@ -62,10 +64,21 @@ def is_within_boundary(user_lat, user_lon):
     return distance <= MAX_DISTANCE_METERS
 
 
+
+def generate_device_token():
+    # Generating a device token using a unique device identifier (can be based on user agent, IP, etc.)
+    device_id = str(uuid.uuid4())  # Unique device identifier (can be customized based on the device info)
+    return hashlib.sha256(device_id.encode()).hexdigest()
+
+def get_current_time():
+    # Ensure the current time is naive (no timezone)
+    return datetime.now()
+
 @app.route("/")
 def index():
     current_time = datetime.now().strftime("%H:%M")  # Format time as HH:MM
     return render_template("index.html")
+
 
 
 @app.route('/location', methods=['POST'])
@@ -196,7 +209,7 @@ def view_attendance():
         {
             "name": user[1],
             "enrollment_no": user[2],
-            "status": attendance_dict.get(user[0]) or "Absent" #{attendance_date}
+            "status": attendance_dict.get(user[0], f"unmarked wait till 11 am ")  #{attendance_date}
         }
         for user in all_users
     ]
@@ -369,44 +382,39 @@ def admin_stats():
     
 
 
+
 @app.route('/admin_logout', methods=['GET'])
 def admin_logout():
     session.pop('admin_logged_in', None)
     return redirect('/admin_login')
 
 
+@app.before_request
 def auto_mark_absent():
     current_time = datetime.now().strftime("%H:%M:%S")
-    cutoff_time = "12:00:00"
-
-    # Only proceed if the current time is past the cutoff
+    cutoff_time = "11:00:00"
     if current_time > cutoff_time:
         today_date = date.today()
-
-        # Use a database connection to mark absentees
         cur = mysql.connection.cursor()
 
-        # Fetch all users who haven't marked attendance today
+        # Fetch all user IDs who haven't marked attendance today
         cur.execute("""
-            SELECT id FROM users 
-            WHERE id NOT IN (
+            SELECT id FROM users WHERE id NOT IN (
                 SELECT user_id FROM attendance WHERE date = %s
             )
-        """, (today_date,))
+        """, [today_date])
         absent_users = cur.fetchall()
 
-        # If there are absent users, mark their attendance
-        if absent_users:
-            for user in absent_users:
-                cur.execute("""
-                    INSERT INTO attendance (user_id, date, time, status)
-                    VALUES (%s, %s, %s, %s)
-                """, (user[0], today_date, current_time, "Absent"))
+        # Mark them as "Absent" in attendance
+        for user_id in absent_users:
+            cur.execute("""
+                INSERT INTO attendance (user_id, date, time, status)
+                VALUES (%s, %s, %s, %s)
+            """, (user_id[0], today_date, current_time, "Absent"))
 
-        # Commit changes and close cursor
         mysql.connection.commit()
         cur.close()
-        
+
 @app.route('/generate_report', methods=['POST'])
 def generate_report():
     duration = request.form.get('report_duration')  # daily, monthly, or custom
@@ -540,21 +548,84 @@ def user_login():
     if request.method == "POST":
         enrollment_no = request.form["enrollment_no"]
         password = request.form["password"].encode("utf-8")
+        device_token = hashlib.sha256(request.remote_addr.encode('utf-8')).hexdigest()  # Generate device token
 
+        # Fetching user from DB
         cur = mysql.connection.cursor()
         cur.execute("SELECT * FROM users WHERE enrollment_no = %s", [enrollment_no])
         user = cur.fetchone()
         cur.close()
 
-        if user and bcrypt.checkpw(password, user[7].encode("utf-8")):
-            session["user_id"] = user[0]
-            session["username"] = user[1]
-            return redirect(url_for("user_dashboard"))
+        if user:
+            db_password = user[7].encode("utf-8")  # Password in database
+            last_logout_time = user[8]  # Assuming last_logout_time is at index 8
+            last_device_token = user[9]  # Assuming device_token is at index 9
+
+            # Debugging logs
+            print(f"Last Logout Time: {last_logout_time}")
+            print(f"Last Device Token: {last_device_token}")
+            print(f"Current Device Token: {device_token}")
+
+            # Check password validity
+            if bcrypt.checkpw(password, db_password):
+                current_time = get_current_time()
+
+                # Check if the device token matches and cooldown has passed
+                if last_device_token == device_token:
+                    if last_logout_time:
+                        cooldown_end = last_logout_time + timedelta(minutes=15)
+                        if current_time < cooldown_end:
+                            remaining_time = (cooldown_end - current_time).seconds // 60
+                            flash(f"Login restricted. Try again in {remaining_time} minutes.", "danger")
+                            print(f"Device {device_token} login restricted. Try again in {remaining_time} minutes.")
+                            return redirect(url_for("user_login"))
+
+                # Successful login
+                session["user_id"] = user[0]
+                session["username"] = user[1]
+                session["device_token"] = device_token  # Save device token to session
+                flash("Login successful!", "success")
+                return redirect(url_for("user_dashboard"))
+            else:
+                flash("Invalid credentials. Please try again.", "danger")
         else:
-            flash("Invalid Credentials", "danger")  # Flash message for invalid credentials
-            return redirect(url_for("user_login"))
+            flash("User not found!", "danger")
 
     return render_template("user_login.html")
+
+# Logout route
+@app.route("/logout")
+def logout():
+    if "user_id" in session:
+        user_id = session["user_id"]
+        device_token = session.get("device_token")  # Get device token from session
+
+        # Debugging logs for logout
+        print(f"Logging out user {user_id} from device {device_token}")
+
+        # Update last_logout_time and device_token in the database
+        cur = mysql.connection.cursor()
+        current_time = get_current_time()
+        
+
+        cur.execute("""
+            UPDATE users
+            SET last_logout_time = %s, device_token = %s
+            WHERE id = %s
+        """, (current_time, device_token, user_id))
+
+        mysql.connection.commit()
+        cur.close()
+
+        # Clear session data
+        session.clear()
+        flash("You have been logged out successfully.", "success")
+        print(f"User {user_id} logged out successfully on device {device_token}.")
+    else:
+        flash("You are not logged in.", "danger")
+    
+    return redirect(url_for("user_login"))
+
 
 @app.route("/user_view_attendance", methods=["POST"])
 def user_view_attendance():
@@ -642,81 +713,81 @@ def user_view_attendance():
 
 @app.route("/user_dashboard", methods=["GET", "POST"])
 def user_dashboard():
-    if "user_id" in session:
+    if "user_id" in session:  # Ensure user is logged in
         if request.method == "POST":
             user_lat = request.form.get("latitude", "").strip()
             user_long = request.form.get("longitude", "").strip()
-            action = request.form.get("action", "").strip()  # Get the action (mark or unmark)
-            
+            action = request.form.get("action", "").strip()  # "mark" or "unmark"
 
-            # Check for invalid latitude or longitude
+            # Validate latitude and longitude
             if not user_lat or not user_long or not user_lat.replace(".", "").isdigit() or not user_long.replace(".", "").isdigit():
-                flash("Invalid latitude or longitude", "danger")
+                flash("Invalid latitude or longitude.", "danger")
                 return redirect(url_for("user_dashboard"))
-            else:
-                user_lat = float(user_lat)
-                user_long = float(user_long)
 
-            # Check if the user is within the allowed boundary
+            user_lat = float(user_lat)
+            user_long = float(user_long)
+
+            # Check location boundary
             if not is_within_boundary(user_lat, user_long):
                 flash("You are outside the allowed area for attendance.", "danger")
                 return redirect(url_for("user_dashboard"))
 
-           
-            current_time = datetime.now().strftime("%H:%M:%S")
+            # Validate time (12 AM - 11:59 PM)
+            current_hour = datetime.now().hour
+            if current_hour < 0 or current_hour >= 24:
+                flash("Attendance can only be marked between 12 AM and 11:59 PM.", "danger")
+                return redirect(url_for("user_dashboard"))
 
-              
-
-            # Connect to the database
+            # Database operations
             try:
                 cur = mysql.connection.cursor()
 
                 if action == "mark":
-                    # Check if attendance is already marked for the day
-                    cur.execute("""SELECT * FROM attendance WHERE user_id = %s AND date = %s""", (session["user_id"], date.today()))
+                    # Check if attendance already exists for today
+                    cur.execute("SELECT * FROM attendance WHERE user_id = %s AND date = %s",
+                                (session["user_id"], date.today()))
                     attendance = cur.fetchone()
 
                     if attendance:
-                        # If attendance is already marked and the status is 'Absent', update it to 'Present'
-                        if attendance[4] == 'Absent':  # Access status with index (3)
-                            cur.execute("""UPDATE attendance SET status = 'Present' WHERE user_id = %s AND date = %s""", 
+                        if attendance[4] == "Absent":  # Update status if marked absent
+                            cur.execute("""UPDATE attendance SET status = 'Present' WHERE user_id = %s AND date = %s""",
                                         (session["user_id"], date.today()))
                             mysql.connection.commit()
-                            flash("Attendance marked as Present", "success")
+                            flash("Attendance updated to Present.", "success")
                         else:
-                            flash("Attendance already marked for today as Present.", "info")
+                            flash("Attendance already marked as Present.", "info")
                     else:
-                        # Insert a new attendance record with "Present" if no attendance exists
-                        cur.execute("""INSERT INTO attendance (user_id, date, time, status, latitude, longitude) 
-                                       VALUES (%s, %s, %s, %s, %s, %s)""", 
-                                       (session["user_id"], date.today(), current_time, "Present", user_lat, user_long))
+                        # Insert new attendance record
+                        cur.execute("""INSERT INTO attendance (user_id, date, time, status, latitude, longitude)
+                                       VALUES (%s, %s, %s, %s, %s, %s)""",
+                                    (session["user_id"], date.today(), datetime.now().strftime("%H:%M:%S"),
+                                     "Present", user_lat, user_long))
                         mysql.connection.commit()
-                        flash("Attendance marked Successfully as Present.", "success")
+                        flash("Attendance marked successfully as Present.", "success")
 
-                # Unmark attendance
                 elif action == "unmark":
-                    # Check if attendance exists for the day
-                    cur.execute("""SELECT * FROM attendance WHERE user_id = %s AND date = %s""", (session["user_id"], date.today()))
+                    # Unmark attendance (set status to 'Absent')
+                    cur.execute("SELECT * FROM attendance WHERE user_id = %s AND date = %s",
+                                (session["user_id"], date.today()))
                     attendance = cur.fetchone()
 
                     if attendance:
-                        # Insert attendance with 'Absent' status if present attendance exists
-                        cur.execute("""UPDATE attendance SET status = 'Absent' WHERE user_id = %s AND date = %s""", 
+                        cur.execute("""UPDATE attendance SET status = 'Absent' WHERE user_id = %s AND date = %s""",
                                     (session["user_id"], date.today()))
                         mysql.connection.commit()
-                        flash("Attendance Marked as Absent.", "danger")
+                        flash("Attendance marked as Absent.", "danger")
                     else:
                         flash("No attendance to unmark for today.", "info")
 
-                cur.close()
-                                
-
             except Exception as e:
                 flash(f"Error processing attendance: {str(e)}", "danger")
+            finally:
+                cur.close()
 
         return render_template("user_dashboard.html", username=session["username"], current_date=date.today())
 
-    return redirect(url_for("index"))
+    return redirect(url_for("user_login"))
+
 
 @app.route("/change_password", methods=["GET", "POST"])
 def change_password():
@@ -798,10 +869,6 @@ def report_issue():
 
 
 
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("index"))
 
 @app.route('/attendance-data')
 def attendance_data():
