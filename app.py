@@ -80,6 +80,13 @@ def index():
     current_time = datetime.now().strftime("%H:%M")  # Format time as HH:MM
     return render_template("index.html")
 
+@app.route('/debug')
+def debug():
+    return {
+        "status": "working",
+        "port": os.getenv("PORT"),
+        "env_vars": os.environ
+    }
 
 
 @app.route('/location', methods=['POST'])
